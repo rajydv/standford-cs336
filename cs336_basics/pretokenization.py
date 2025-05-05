@@ -3,6 +3,7 @@ import regex as re
 from typing import BinaryIO
 from collections import defaultdict, Counter
 from multiprocessing import Pool
+from cs336_basics.utils import pre_tokenizer_pattern
 
 def find_chunk_boundaries(
     file: BinaryIO, 
@@ -56,7 +57,7 @@ def preprocess_chunk(
     file_path: str,
     start: int,
     end: int,
-    token_pattern_byte: bytes,
+    pre_tokenizer_pattern_byte: bytes,
     escaped_special_tokens_byte: bytes
 ) -> dict[tuple[bytes], int]:
     # init
@@ -71,7 +72,7 @@ def preprocess_chunk(
         docs_iter = re.split(escaped_special_tokens_byte, docs)
         for doc in docs_iter:
             # cleaned_doc = re.sub(rb'\s+', b' ', doc)
-            matchs_iter = re.finditer(token_pattern_byte, doc, re.IGNORECASE)
+            matchs_iter = re.finditer(pre_tokenizer_pattern_byte, doc, re.IGNORECASE)
             for match in matchs_iter:
                 word_freqs[tuple(bytes([b]) for b in match.group())] += 1
                 # word_freqs[match.group()] += 1
@@ -83,8 +84,7 @@ def pretokenization(
     special_tokens: list[str],
     num_process: int = 16,
 ) -> dict[tuple[bytes], int]:
-    token_pattern = r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+"""
-    token_pattern_bytes = token_pattern.encode("utf-8")
+    pre_tokenizer_pattern_bytes = pre_tokenizer_pattern.encode("utf-8")
 
 
     escaped_tokens = [re.escape(token) for token in special_tokens]
@@ -95,7 +95,7 @@ def pretokenization(
     with open(file_path, "rb") as file:
         boundaries = find_chunk_boundaries(file, num_process, mini_chunk_size, split_special_token_byte)
 
-    chunk_params = [(file_path, start, end, token_pattern_bytes, split_special_token_byte) 
+    chunk_params = [(file_path, start, end, pre_tokenizer_pattern_bytes, split_special_token_byte) 
                     for start, end in zip(boundaries[:-1], boundaries[1:])]
         
     with Pool(processes=num_process) as pool:

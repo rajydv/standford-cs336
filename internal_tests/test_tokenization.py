@@ -1,4 +1,4 @@
-from cs336_basics.tokenizer import compute_pair_freqs, merge_pair, perform_merge_iteration
+from cs336_basics.tokenizer import compute_pair_freqs, merge_pair, perform_merge_iteration, BPETokenizer
 
 def test_compute_pair_freqs():
     word_freqs = {
@@ -143,3 +143,129 @@ def test_perform_merge_iteration():
 
     assert vocab == expectd_vocab
     assert merges == expectd_merges
+
+
+
+def test_bpe_encode():
+    vocab = {0: b' ',
+            1: b'a',
+            2: b'c',
+            3: b'e',
+            4: b'h',
+            5: b't',
+            6: b'th',
+            7: b' c',
+            8: b' a',
+            9: b'the',
+            10: b' at'
+            }
+
+    merges = [(b't', b'h'), (b' ', b'c'), (b' ',b'a'), (b'th', b'e'), (b' a', b't')]
+
+    bpe_tokenzier = BPETokenizer(vocab, merges)
+    text = 'the cat ate'
+    result = bpe_tokenzier.encode(text)
+    # [(b't', b'h', b'e'),  => b'th', b'e'
+    #  (b' ', b'c', b'a', b't'), => b' c', b'a', b't'
+    #  (b' ', b'a', b't', b'e')]
+    expected = [9, 7, 1, 5, 10, 3]
+    assert result == expected
+
+def test_bpe_decode():
+    vocab = {0: b' ',
+            1: b'a',
+            2: b'c',
+            3: b'e',
+            4: b'h',
+            5: b't',
+            6: b'th',
+            7: b' c',
+            8: b' a',
+            9: b'the',
+            10: b' at'
+            }
+
+    merges = [(b't', b'h'), (b' ', b'c'), (b' ',b'a'), (b'th', b'e'), (b' a', b't')]
+
+    bpe_tokenzier = BPETokenizer(vocab, merges)
+    tokens = [9, 7, 1, 5, 10, 3]
+    result = bpe_tokenzier.decode(tokens)
+    expected = 'the cat ate'
+    assert result == expected
+
+def test_bpe_encode_iterable():
+    vocab = {0: b' ',
+            1: b'a',
+            2: b'c',
+            3: b'e',
+            4: b'h',
+            5: b't',
+            6: b'th',
+            7: b' c',
+            8: b' a',
+            9: b'the',
+            10: b' at'
+            }
+
+    merges = [(b't', b'h'), (b' ', b'c'), (b' ',b'a'), (b'th', b'e'), (b' a', b't')]
+
+    bpe_tokenizer = BPETokenizer(vocab, merges)
+    
+    # Test with a list of strings
+    texts = ['the cat', 'ate']
+    token_iterator = bpe_tokenizer.encode_iterable(texts)
+    
+    # Test tokens are yielded one by one
+    assert next(token_iterator) == 9  # 'the'
+    assert next(token_iterator) == 7  # ' c'
+    assert next(token_iterator) == 1  # 'a'
+    assert next(token_iterator) == 5  # 't'
+    assert next(token_iterator) == 1  # 'a'
+    assert next(token_iterator) == 5  # 't'
+    assert next(token_iterator) == 3  # 'e'
+    
+    # Verify iterator is exhausted
+    try:
+        next(token_iterator)
+        assert False, "Iterator should be exhausted"
+    except StopIteration:
+        pass
+
+def test_special_tokens():
+    vocab = {
+        0: b' ',
+        1: b'a',
+        2: b'c',
+        3: b'e',
+        4: b'h',
+        5: b't',
+        6: b'th',
+        7: b' c',
+        8: b' a',
+        9: b'the',
+        10: b' at',
+    }
+
+    merges = [(b't', b'h'), (b' ', b'c'), (b' ',b'a'), (b'th', b'e'), (b' a', b't')]
+    special_tokens = ["<|endoftext|>", "<|pad|>"]
+
+    bpe_tokenizer = BPETokenizer(vocab, merges, special_tokens)
+    
+    # Test 1: Special tokens should not be split
+    text = "the<|endoftext|>cat"
+    result = bpe_tokenizer.encode(text)
+    expected = [9, 11, 7, 1, 5]  # 'the' + '<|endoftext|>' + ' c' + 'a' + 't'
+    import pdb; pdb.set_trace()
+    assert result == expected
+
+    # # Test 2: Multiple special tokens
+    # text = "<|endoftext|>hello<|pad|>"
+    # result = bpe_tokenizer.encode(text)
+    # expected = [11, 4, 3, 1, 1, 10, 12]  # '<|endoftext|>' + 'h' + 'e' + 'l' + 'l' + 'o' + '<|pad|>'
+    # assert result == expected
+
+    # # Test 3: Special tokens in decode
+    # tokens = [9, 11, 7, 1, 5]  # "the<|endoftext|>cat"
+    # result = bpe_tokenizer.decode(tokens)
+    # expected = "the<|endoftext|>cat"
+    # assert result == expected
