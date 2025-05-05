@@ -60,7 +60,7 @@ class BPETokenizer(Tokenizer):
             if chunk in self.special_tokens:
                 special_token_bytes = chunk.encode("utf-8")
                 result.append(self.char2id_vocab[special_token_bytes])
-            # If chunk is regular text
+            # If chunk is regular text, ignore empty chunck eg: ('')
             elif chunk:
                 chunk_bytes = chunk.encode("utf-8")
                 pre_tokens = re.findall(pre_tokenizer_pattern.encode("utf-8"), chunk_bytes, re.IGNORECASE)
