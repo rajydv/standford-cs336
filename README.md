@@ -10,7 +10,6 @@ The repository is organized into separate directories for each assignment, with 
 ├── assignment1-basics/          # Fundamentals: tokenization, models, optimization
 ├── assignment2-systems/         # Systems: parallelism, optimization, benchmarking  
 ├── spring2025-lectures/         # Lecture materials and code examples
-└── README.md                    # This file
 ```
 
 ## Getting Started
