@@ -1,0 +1,1 @@
+This is the Hugging Face Course.<|endoftext|>This chapter is about tokenization.<|endoftext|>This section shows several tokenizer algorithms.<|endoftext|>Hopefully, you will be able to understand how they are trained and generate tokens.
