@@ -129,6 +129,14 @@ env.bak/
 venv.bak/
 list/
 
+# Assignment-specific virtual environments
+assignment1-basics/.venv/
+assignment2-systems/.venv/
+spring2025-lectures/.venv/
+
+# Pytest cache
+**/.pytest_cache/
+
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -192,6 +200,13 @@ Trace - lecture_*/
 traces/
 profiler/
 
-# Data files (uncomment if you don't want to track large data files)
-# *.txt
-# data/
+# Data files - exclude large training datasets
+**/data/*.txt
+**/data/*.gz
+assignment1-basics/data/TinyStoriesV2-GPT4-*.txt
+assignment1-basics/data/owt_*.txt
+**/fixtures/tinystories_sample_5M.txt
+
+# Keep small example/test files
+!**/data/tiny.txt
+!**/fixtures/tinystories_sample.txt
